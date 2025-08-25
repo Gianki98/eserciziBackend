@@ -1,21 +1,18 @@
-import express from "express";
+// server.js
+import { createServer } from 'node:http';
 
-const app = express();
 const PORT = 3000;
 
-app.get("/", (req, res) => {
-  res
-    .status(200) 
-    .set("Content-Type", "text/html") 
-    .send(`<!doctype html>
-<html lang="it">
-  <head><meta charset="utf-8"><title>Home</title></head>
-  <body>
-    <h1>Server online</h1>
-  </body>
-</html>`);
+const server = createServer((req, res) => {
+  const body = JSON.stringify({ location: "Mars" });
+
+  res.writeHead(200, {
+    "Content-Type": "application/json",
+    "Content-Length": Buffer.byteLength(body),
+  });
+  res.end(body);
 });
 
-app.listen(PORT, () =>
-  console.log(`Il server è attivo su http://localhost:${PORT}`)
-);
+server.listen(PORT, () => {
+  console.log(`Server in ascolto su http://localhost:${PORT}`);
+});
