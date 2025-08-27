@@ -1,18 +1,13 @@
-// server.js
-import { createServer } from 'node:http';
+import { writeFile } from 'node:fs';
 
-const PORT = 3000;
+const content = `Ciao dal callback API di fs.writeFile!
+Timestamp: ${new Date().toISOString()}
+`;
 
-const server = createServer((req, res) => {
-  const body = JSON.stringify({ location: "Mars" });
-
-  res.writeHead(200, {
-    "Content-Type": "application/json",
-    "Content-Length": Buffer.byteLength(body),
-  });
-  res.end(body);
-});
-
-server.listen(PORT, () => {
-  console.log(`Server in ascolto su http://localhost:${PORT}`);
+writeFile('output.txt', content, { encoding: 'utf8' }, (err) => {
+  if (err) {
+    console.error('Errore durante la scrittura del file:', err);
+    process.exit(1);
+  }
+  console.log('File scritto correttamente: output.txt');
 });
