@@ -1,13 +1,20 @@
-import { writeFile } from 'node:fs';
+function luckyDraw(player) {
+  return new Promise((resolve, reject) => {
+    const win = Boolean(Math.round(Math.random()));
+    process.nextTick(() => {
+      if (win) resolve(`${player} won a prize in the draw!`);
+      else reject(new Error(`${player} lost the draw.`));
+    });
+  });
+}
 
-const content = `Ciao dal callback API di fs.writeFile!
-Timestamp: ${new Date().toISOString()}
-`;
 
-writeFile('output.txt', content, { encoding: 'utf8' }, (err) => {
-  if (err) {
-    console.error('Errore durante la scrittura del file:', err);
-    process.exit(1);
-  }
-  console.log('File scritto correttamente: output.txt');
-});
+const play = (player) =>
+  luckyDraw(player)
+    .then((msg) => console.log(msg))
+    .catch((err) => console.error(err.message));
+
+
+play("Joe")
+  .then(() => play("Caroline"))
+  .then(() => play("Sabrina"));
