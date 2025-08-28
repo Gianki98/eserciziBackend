@@ -8,13 +8,18 @@ function luckyDraw(player) {
   });
 }
 
+async function getResults() {
+  const players = ["Tina", "Jorge", "Julien"];
 
-const play = (player) =>
-  luckyDraw(player)
-    .then((msg) => console.log(msg))
-    .catch((err) => console.error(err.message));
+  for (const p of players) {
+    try {
+      const msg = await luckyDraw(p);
+      console.log(msg);
+    } catch (err) {
+      console.error(err.message);
+    }
+  }
+}
 
-
-play("Joe")
-  .then(() => play("Caroline"))
-  .then(() => play("Sabrina"));
+// avvio
+getResults();
