@@ -1,25 +1,35 @@
-function luckyDraw(player) {
-  return new Promise((resolve, reject) => {
-    const win = Boolean(Math.round(Math.random()));
-    process.nextTick(() => {
-      if (win) resolve(`${player} won a prize in the draw!`);
-      else reject(new Error(`${player} lost the draw.`));
-    });
-  });
+const { EventEmitter } = require("node:events");
+
+function createNewsFeed() {
+  const emitter = new EventEmitter();
+
+  setInterval(() => {
+    emitter.emit("newsEvent", "News: A thing happened in a place.");
+  }, 1000);
+
+  setInterval(() => {
+    emitter.emit("breakingNews", "Breaking news! A BIG thing happened.");
+  }, 4000);
+
+  setTimeout(() => {
+    emitter.emit("error", new Error("News feed connection error"));
+  }, 5000);
+
+  return emitter;
 }
 
-async function getResults() {
-  const players = ["Tina", "Jorge", "Julien"];
+const newsFeed = createNewsFeed();
 
-  for (const p of players) {
-    try {
-      const msg = await luckyDraw(p);
-      console.log(msg);
-    } catch (err) {
-      console.error(err.message);
-    }
-  }
-}
+// listener per ciascun evento
+newsFeed.on("newsEvent", (data) => {
+  console.log("[newsEvent]", data);
+});
 
-// avvio
-getResults();
+newsFeed.on("breakingNews", (data) => {
+  console.log("[breakingNews]", data);
+});
+
+// gestire l'evento 'error' per evitare crash
+newsFeed.on("error", (err) => {
+  console.error("[error]", err.message);
+});
