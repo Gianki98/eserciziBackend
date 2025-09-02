@@ -1,35 +1,31 @@
-const { EventEmitter } = require("node:events");
+import 'dotenv/config';
+import 'express-async-errors';
+import express from 'express';
+import morgan from 'morgan';
 
-function createNewsFeed() {
-  const emitter = new EventEmitter();
+const app = express();
+const PORT = 3000;
 
-  setInterval(() => {
-    emitter.emit("newsEvent", "News: A thing happened in a place.");
-  }, 1000);
+// Config: accetta JSON + log delle richieste
+app.use(express.json());
+app.use(morgan('dev'));
 
-  setInterval(() => {
-    emitter.emit("breakingNews", "Breaking news! A BIG thing happened.");
-  }, 4000);
+// Dummy "database"
+let planets = [
+  { id: 1, name: 'Earth' },
+  { id: 2, name: 'Mars' },
+];
 
-  setTimeout(() => {
-    emitter.emit("error", new Error("News feed connection error"));
-  }, 5000);
+// Rotte minime (torneranno utili nei passi successivi)
+app.get('/', (_req, res) => res.send('Server up'));
+app.get('/planets', (_req, res) => res.json(planets));
 
-  return emitter;
-}
-
-const newsFeed = createNewsFeed();
-
-// listener per ciascun evento
-newsFeed.on("newsEvent", (data) => {
-  console.log("[newsEvent]", data);
+// Handler errori (utile con express-async-errors)
+app.use((err, _req, res, _next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
-newsFeed.on("breakingNews", (data) => {
-  console.log("[breakingNews]", data);
-});
-
-// gestire l'evento 'error' per evitare crash
-newsFeed.on("error", (err) => {
-  console.error("[error]", err.message);
+app.listen(PORT, () => {
+  console.log(`Server in ascolto su http://localhost:${PORT}`);
 });
