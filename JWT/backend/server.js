@@ -1,8 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Pool } from "pg"; // Importa il pacchetto pg per la connessione al database
+import db from "./db";
 
 dotenv.config();
 
@@ -11,13 +10,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Configurazione connessione al database PostgreSQL
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // Assicurati di avere la variabile DATABASE_URL nel file .env
-});
-
 // Rotta di registrazione (signup)
-app.post("/registrazione", async (req, res) => {
+app.post("/users/signup", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -27,13 +21,10 @@ app.post("/registrazione", async (req, res) => {
   }
 
   try {
-    // Cifra la password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Salva l'utente nel database
-    const result = await pool.query(
+    const result = await db.one(
       "INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, username",
-      [username, hashedPassword]
+      [username, password]
     );
 
     const user = result.rows[0];
@@ -50,7 +41,7 @@ app.post("/registrazione", async (req, res) => {
 });
 
 // Rotta di login
-app.post("/login", async (req, res) => {
+app.post("/users/login", async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -61,21 +52,22 @@ app.post("/login", async (req, res) => {
 
   try {
     // Trova l'utente nel database
-    const user = await db.one("SELECT * FROM users WHERE username = $1", [
+    const user = await db.oneOrNone("SELECT * FROM users WHERE username = $1", [
       username,
     ]);
 
-    if (!user && !user.password === password) {
+    if (!user || user.password !== password) {
       return res.status(401).json({ message: "Credenziali errate" });
     }
 
     // Crea un JWT
     const token = jwt.sign(
       { id: user.id, username: user.username },
-      process.env.JWT_SECRET,
+      process.env.SECRET,
       { expiresIn: "1h" }
     );
-
+    // Salviamo in token con Update in users
+    await db.none("UPDATE users SET token=$1 WHERE id=$2", [token, user.id]);
     res.json({
       message: "Login effettuato con successo.",
       token,
