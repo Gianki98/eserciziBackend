@@ -61,21 +61,11 @@ app.post("/login", async (req, res) => {
 
   try {
     // Trova l'utente nel database
-    const result = await pool.query(
-      "SELECT id, username, password FROM users WHERE username = $1",
-      [username]
-    );
+    const user = await db.one("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
 
-    const user = result.rows[0];
-
-    if (!user) {
-      return res.status(401).json({ message: "Credenziali errate" });
-    }
-
-    // Confronta la password
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
+    if (!user && !user.password === password) {
       return res.status(401).json({ message: "Credenziali errate" });
     }
 

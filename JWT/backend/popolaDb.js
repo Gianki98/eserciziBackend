@@ -7,7 +7,7 @@ async function start() {
         drop table if exists users;
         
         create table users (
-        id serial not nulla primary key,
+        id serial not null primary key,
         username text not null,
         password text not null,
         token text 
@@ -15,7 +15,6 @@ async function start() {
         `);
       await t.none(`
         insert into users (username, password) values ('carlo','123') 
-        )
         `);
     });
     console.log("Operazione completata");
